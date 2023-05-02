@@ -2,7 +2,7 @@
 setup: simclr
 
 # Model
-backbone: resnet18
+backbone: mobileNet # resnet18
 model_kwargs:
    head: mlp
    features_dim: 128
@@ -18,7 +18,7 @@ criterion_kwargs:
    temperature: 0.1 
 
 # Hyperparameters
-epochs: 100 # Edit from 500
+epochs: 330 # Edit from 500
 optimizer: sgd
 optimizer_kwargs:
    nesterov: False

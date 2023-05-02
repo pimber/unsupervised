@@ -42,14 +42,17 @@ def main():
     val_dataset = get_val_dataset(p, val_transformations, to_neighbors_dataset = True)
     train_dataloader = get_train_dataloader(p, train_dataset)
     val_dataloader = get_val_dataloader(p, val_dataset)
+    print(len(train_dataloader))
+    print(len(val_dataloader))
+
     print('Train transforms:', train_transformations)
     print('Validation transforms:', val_transformations)
     print('Train samples %d - Val samples %d' %(len(train_dataset), len(val_dataset)))
     
     # Model
     print(colored('Get model', 'blue'))
-    model = get_model(p, p['pretext_model'])
-    print(model)
+    model = get_model(p, p['pretext_model']) # Den crasher når den når denne linje
+    print(type(model))
     model = torch.nn.DataParallel(model)
     model = model.cuda()
 
@@ -141,7 +144,7 @@ def main():
                             confusion_matrix_file=os.path.join(p['scan_dir'], 'confusion_matrix.png'))
     print(clustering_stats)
 
-    save_time_to_csv(end_timer(start_time, p['train_db_name']), p['train_db_name'], os.path.basename(__file__))
+    save_time_to_csv(end_timer(start_time, p['train_db_name']), p['train_db_name'], os.path.basename(__file__), p['backbone'])
 
 def start_timer():
     start_time = time.time()
@@ -158,10 +161,10 @@ def end_timer(start_time, train_db_name):
 
     return elapsed_time
 
-def save_time_to_csv(final_time, db_name, file_name):
+def save_time_to_csv(final_time, db_name, file_name, backbone):
     with open('./results/final_time.csv', 'a', newline='') as file:
         writer = csv.writer(file)
-        writer.writerow([f'{file_name}: {db_name}: {final_time}'])
+        writer.writerow([f'file: {file_name}, dataset: {db_name}, backbone: {backbone}, seconds: {final_time}'])
     print('Final time saved to CSV file.')
     
 if __name__ == "__main__":

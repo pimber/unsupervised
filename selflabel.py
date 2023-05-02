@@ -124,7 +124,7 @@ def main():
     print(clustering_stats)
     torch.save(model.module.state_dict(), p['selflabel_model'])
 
-    save_time_to_csv(end_timer(start_time, p['train_db_name']), p['train_db_name'], os.path.basename(__file__))
+    save_time_to_csv(end_timer(start_time, p['train_db_name']), p['train_db_name'], os.path.basename(__file__), p['backbone'])
 
 if __name__ == "__main__":
     main()

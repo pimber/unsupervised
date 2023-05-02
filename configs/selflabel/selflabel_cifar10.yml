@@ -13,7 +13,7 @@ criterion_kwargs:
    apply_class_balancing: True
 
 # Model
-backbone: resnet18
+backbone: mobileNet # resnet18
 num_heads: 1
 
 # Dataset

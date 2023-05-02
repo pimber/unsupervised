@@ -55,6 +55,16 @@ def get_model(p, pretrain_path=None):
         else:
             raise NotImplementedError
 
+    elif p['backbone'] == 'mobileNet':
+        if p['train_db_name'] in ['cifar-10', 'cifar-100-python', 'cifar-100']:
+            from models.mobilenet import mobileNet
+            backbone = mobileNet()
+
+        else:
+            raise NotImplementedError
+
+
+
     elif p['backbone'] == 'resnet50':
         if 'imagenet' in p['train_db_name']:
             from models.resnet import resnet50
@@ -81,11 +91,12 @@ def get_model(p, pretrain_path=None):
         raise ValueError('Invalid setup {}'.format(p['setup']))
 
     # Load pretrained weights
+    print(pretrain_path) #Loads the model.pht.tar from pretext into the scan
     if pretrain_path is not None and os.path.exists(pretrain_path):
         state = torch.load(pretrain_path, map_location='cpu')
-        
         if p['setup'] == 'scan': # Weights are supposed to be transfered from contrastive training
             missing = model.load_state_dict(state, strict=False)
+            print(missing) # The tuple of constrative is under unexpected_keys
             assert(set(missing[1]) == {
                 'contrastive_head.0.weight', 'contrastive_head.0.bias', 
                 'contrastive_head.2.weight', 'contrastive_head.2.bias'}
