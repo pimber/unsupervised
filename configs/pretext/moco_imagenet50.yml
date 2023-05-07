@@ -15,7 +15,7 @@ temperature: 0.07
 
 # Batch size and workers
 batch_size: 256 
-num_workers: 8
+num_workers: 6
 
 # Transformations
 transformation_kwargs:

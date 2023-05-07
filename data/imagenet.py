@@ -46,32 +46,57 @@ class ImageNet(datasets.ImageFolder):
 
 
 class ImageNetSubset(data.Dataset):
-    def __init__(self, subset_file, root=MyPath.db_root_dir('imagenet'), split='train', 
+    def __init__(self, subset_file, root='E:\imagenet', split='train',
                     transform=None):
         super(ImageNetSubset, self).__init__()
 
         self.root = os.path.join(root, 'ILSVRC2012_img_%s' %(split))
         self.transform = transform
         self.split = split
+        print(split)
 
-        # Read the subset of classes to include (sorted)
-        with open(subset_file, 'r') as f:
-            result = f.read().splitlines()
-        subdirs, class_names = [], []
-        for line in result:
-            subdir, class_name = line.split(' ', 1)
-            subdirs.append(subdir)
-            class_names.append(class_name)
+        if split == "train":
+            # Read the subset of classes to include (sorted)
+            with open(subset_file, 'r') as f:
+                result = f.read().splitlines()
+            subdirs, class_names = [], []
+            for line in result:
+                subdir, class_name = line.split(' ', 1)
+                subdirs.append(subdir)
+                class_names.append(class_name)
 
-        # Gather the files (sorted)
-        imgs = []
-        for i, subdir in enumerate(subdirs):
-            subdir_path = os.path.join(self.root, subdir)
-            files = sorted(glob(os.path.join(self.root, subdir, '*.JPEG')))
-            for f in files:
-                imgs.append((f, i)) 
-        self.imgs = imgs 
-        self.classes = class_names
+            # Gather the files (sorted)
+            imgs = []
+            for i, subdir in enumerate(subdirs):
+                subdir_path = os.path.join(self.root, subdir)
+                files = sorted(glob(os.path.join(self.root, subdir, '*.JPEG')))
+                for f in files:
+                    imgs.append((f, i))
+            self.imgs = imgs
+            self.classes = class_names
+        else:
+            # Get class names
+            class_dir, class_names = {}, []
+            with open(subset_file, 'r') as f:
+                result = f.read().splitlines()
+            for line in result:
+                subdir, class_name = line.split(' ', 1)
+                class_dir[subdir] = class_name
+                class_names.append(class_name)
+
+            # Load validation classes from files
+            imgs, img_labels = [], []
+            with open('./data/imagenet_subsets/imagenet_validation_labels.txt') as f:
+                img_labels = f.read().splitlines()
+            files = sorted(glob(os.path.join(self.root, '*.JPEG')))
+            for i, f in enumerate(files):
+                label = img_labels[i]
+                if label not in class_dir.keys():
+                    continue
+                class_name_index = class_names.index(class_dir[label])
+                imgs.append((f, class_name_index))
+            self.imgs = imgs
+            self.classes = class_names
     
 	# Resize
         self.resize = tf.Resize(256)

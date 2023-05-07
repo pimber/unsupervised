@@ -62,7 +62,7 @@ def main():
     
     # Load the official MoCoV2 checkpoint
     print(colored('Downloading moco v2 checkpoint', 'blue'))
-    os.system('wget -L https://dl.fbaipublicfiles.com/moco/moco_checkpoints/moco_v2_800ep/moco_v2_800ep_pretrain.pth.tar')
+    os.system('wget -L https://dl.fbaipublicfiles.com/moco/moco_checkpoints/moco_v2_800ep/moco_v2_800ep_pretrain.pth.tar --no-check-certificate')
     moco_state = torch.load('moco_v2_800ep_pretrain.pth.tar', map_location='cpu')
 
     
@@ -85,7 +85,8 @@ def main():
             raise ValueError('Unexpected key {}'.format(k)) 
 
     model.load_state_dict(new_state_dict)
-    os.system('rm -rf moco_v2_800ep_pretrain.pth.tar')
+    #os.system('rm -rf moco_v2_800ep_pretrain.pth.tar')
+    os.system('del -rf moco_v2_800ep_pretrain.pth.tar')
    
  
     # Save final model
@@ -93,19 +94,6 @@ def main():
     torch.save(model.module.state_dict(), p['pretext_model'])
     model.module.contrastive_head = torch.nn.Identity() # In this case, we mine the neighbors before the MLP. 
 
-    
-    # Mine the topk nearest neighbors (Train)
-    # These will be used for training with the SCAN-Loss.
-    topk = 50
-    print(colored('Mine the nearest neighbors (Train)(Top-%d)' %(topk), 'blue'))
-    transforms = get_val_transformations(p)
-    train_dataset = get_train_dataset(p, transforms) 
-    fill_memory_bank(train_dataloader, model, memory_bank_train)
-    indices, acc = memory_bank_train.mine_nearest_neighbors(topk)
-    print('Accuracy of top-%d nearest neighbors on train set is %.2f' %(topk, 100*acc))
-    np.save(p['topk_neighbors_train_path'], indices)
-   
-     
     # Mine the topk nearest neighbors (Validation)
     # These will be used for validation.
     topk = 5
@@ -115,6 +103,19 @@ def main():
     indices, acc = memory_bank_val.mine_nearest_neighbors(topk)
     print('Accuracy of top-%d nearest neighbors on val set is %.2f' %(topk, 100*acc))
     np.save(p['topk_neighbors_val_path'], indices)
+
+    # Mine the topk nearest neighbors (Train)
+    # These will be used for training with the SCAN-Loss.
+    topk = 50
+    print(colored('Mine the nearest neighbors (Train)(Top-%d)' %(topk), 'blue'))
+    transforms = get_val_transformations(p)
+    train_dataset = get_train_dataset(p, transforms)
+    fill_memory_bank(train_dataloader, model, memory_bank_train)
+    indices, acc = memory_bank_train.mine_nearest_neighbors(topk)
+    print('Accuracy of top-%d nearest neighbors on train set is %.2f' %(topk, 100*acc))
+    np.save(p['topk_neighbors_train_path'], indices)
+
+
 
 
 if __name__ == '__main__':
